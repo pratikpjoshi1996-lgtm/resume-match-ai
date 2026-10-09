@@ -9,9 +9,19 @@ env/
 uploads/*
 !uploads/.gitkeep
 
-# OS / editor
-.DS_Store
-.vscode/
-*.log
-   data/saved_jobs.json
-   data/analysis_history.json
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Local data and temporary files
