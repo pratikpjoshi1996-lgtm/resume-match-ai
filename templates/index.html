@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResumeMatch AI</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">RM</span>
+    <div class="brand-text">
+      <p class="brand-name">ResumeMatch <em>AI</em></p>
+      <p class="tagline">Semantic screening with a visible reason for every rank.</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false">
+      <svg class="icon icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      <svg class="icon icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- LEFT: input panel -->
+  <section class="panel input-panel" aria-labelledby="jd-heading">
+    <div class="section-heading" id="jd-heading">
+      <span class="step-badge" aria-hidden="true">1</span>
+      <h2>Job Description</h2>
+    </div>
+
+    <label class="field-label" for="saved-jobs-select">Previously used job descriptions</label>
+    <div class="saved-jobs-row">
+      <select id="saved-jobs-select">
+        <option value="">+ New job description</option>
+      </select>
+      <button type="button" id="delete-saved-job-btn" class="btn btn-ghost btn-sm" hidden aria-label="Delete this saved job description">
+        <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+      </button>
+    </div>
+
+    <label class="field-label" for="job_title">Role title</label>
+    <input type="text" id="job_title" placeholder="e.g. Backend Engineer" autocomplete="off">
+
+    <label class="field-label" for="job_description">Paste the job description</label>
+    <p class="field-hint" id="jd-hint">Include required skills and experience, e.g. "3+ years experience".</p>
+    <textarea id="job_description" rows="10" aria-describedby="jd-hint" placeholder="Paste the full job description text here..."></textarea>
+
+    <div class="section-heading">
+      <span class="step-badge" aria-hidden="true">2</span>
+      <h2>Resumes</h2>
+    </div>
+
+    <label class="field-label" for="resumes">Upload PDF or DOCX resumes (multiple allowed)</label>
+    <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Upload resumes: drag and drop files or press Enter to browse">
+      <input type="file" id="resumes" accept=".pdf,.docx" multiple hidden>
+      <svg class="icon icon-lg dropzone-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg>
+      <p id="dropzone-text">Drag files here, or <span class="link-text">browse</span></p>
+      <p class="file-hint">PDF or DOCX, multiple files supported</p>
+    </div>
+
+    <div id="file-list-header" class="file-list-header" hidden>
+      <span id="file-count-label">0 files selected</span>
+      <button type="button" id="clear-files-btn" class="clear-all-btn">Clear all</button>
+    </div>
+    <ul id="file-list" class="file-list"></ul>
+
+    <button id="analyze-btn" class="btn btn-primary btn-block" type="button">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+      <span id="analyze-btn-label">Rank Candidates</span>
+    </button>
+    <p id="status-line" class="status-line" role="status" aria-live="polite"></p>
+  </section>
+
+  <!-- RIGHT: results panel -->
+  <section class="panel results-panel" aria-labelledby="results-title">
+    <div class="results-header">
+      <h2 id="results-title">Ranked Shortlist</h2>
+      <div class="results-actions" id="results-actions" hidden>
+        <div class="search-wrap">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="search-box" placeholder="Search candidate..." aria-label="Search candidates by name">
+        </div>
+        <select id="sort-select" aria-label="Sort candidates">
+          <option value="score-desc">Score: high to low</option>
+          <option value="score-asc">Score: low to high</option>
+          <option value="name-asc">Name: A-Z</option>
+        </select>
+        <select id="min-score-select" aria-label="Filter by minimum match score">
+          <option value="0">All scores</option>
+          <option value="50">50%+ match</option>
+          <option value="70">70%+ match</option>
+          <option value="90">90%+ match</option>
+        </select>
+        <button id="export-csv" class="btn btn-secondary btn-sm" type="button">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          CSV
+        </button>
+        <button id="export-pdf" class="btn btn-secondary btn-sm" type="button">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          PDF
+        </button>
+      </div>
+    </div>
+
+    <div id="history-row" class="saved-jobs-row history-row" hidden>
+      <select id="history-select" aria-label="View a past analysis">
+        <option value="">View a past analysis...</option>
+      </select>
+      <button type="button" id="delete-history-btn" class="btn btn-ghost btn-sm" hidden aria-label="Delete this past analysis">
+        <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+      </button>
+    </div>
+
+    <p id="empty-state" class="empty-state">
+      <svg class="icon icon-lg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+      Paste a job description and upload resumes to see a ranked, explainable shortlist here.
+    </p>
+    <p id="meta-line" class="meta-line" hidden></p>
+
+    <details id="jd-recap" class="jd-recap" hidden>
+      <summary>
+        <svg class="icon icon-sm chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        Job description used for this ranking
+      </summary>
+      <p id="jd-recap-text"></p>
+    </details>
+
+    <div id="compare-bar" class="compare-bar" hidden>
+      <span id="compare-count-label">0 selected</span>
+      <div class="compare-bar-actions">
+        <button type="button" id="compare-clear-btn" class="btn btn-ghost btn-sm">Clear</button>
+        <button type="button" id="compare-btn" class="btn btn-primary btn-sm" disabled>
+          <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>
+          Compare Selected
+        </button>
+      </div>
+    </div>
+
+    <div id="results-table-wrap" hidden>
+      <div class="table-scroll">
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th scope="col"><span class="sr-only">Select</span></th>
+              <th scope="col">#</th>
+              <th scope="col">Candidate</th>
+              <th scope="col">Match</th>
+              <th scope="col">Experience</th>
+              <th scope="col">Top skills</th>
+              <th scope="col"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Candidate detail modal (explainability view) -->
+<div id="detail-modal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modal-candidate-name">
+  <div class="modal">
+    <button class="modal-close" id="modal-close" aria-label="Close">
+      <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- Reusable confirmation dialog (used for destructive actions e.g. removing a file) -->
+<div id="confirm-modal" class="modal-overlay" hidden role="alertdialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+  <div class="modal confirm-modal">
+    <h3 id="confirm-modal-title">Remove file?</h3>
+    <p id="confirm-modal-text">Are you sure you want to remove this file from the upload list?</p>
+    <div class="confirm-actions">
+      <button type="button" class="btn btn-ghost btn-sm" id="confirm-cancel-btn">Cancel</button>
+      <button type="button" class="btn btn-danger btn-sm" id="confirm-ok-btn">Remove</button>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

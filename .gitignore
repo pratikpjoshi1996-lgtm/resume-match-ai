@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+env/
+
+# Runtime data
+uploads/*
+!uploads/.gitkeep
+
+# OS / editor
+.DS_Store
+.vscode/
+*.log
+   data/saved_jobs.json
+   data/analysis_history.json
